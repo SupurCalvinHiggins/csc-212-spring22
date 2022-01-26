@@ -426,7 +426,7 @@ Use what you learned in this lab to complete the following exercises:
   An example:
 
    ```
-   g++ main.cpp -o prog && ./prog 4 30 40 50 60
+   g++ main.cpp Animal.cpp -o prog && ./prog 4 30 40 50 60
    ```
 
    This should prompt the user four times for an animal type. If the user enters:
