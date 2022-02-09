@@ -1,9 +1,9 @@
 # Lab 03: Dynamic Arrays
 
 1. Background Info
-          1. [Arrays](#arrays)
-       2. [Dynamic Arrays (Resizable Arrays)](#dynamic-arrays-resizable-arrays)
-       3. [Amortized Analysis](#amortized-analysis)
+  	1. [Arrays](#arrays)
+	2. [Dynamic Arrays (Resizable Arrays)](#dynamic-arrays-resizable-arrays)
+	3. [Amortized Analysis](#amortized-analysis)
 2. [Tasks](#your-task)
 3. [Requirements](#requirements)
 
