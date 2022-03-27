@@ -199,7 +199,7 @@ The algorithm for transforming an infix expression into a postfix expression can
 if left parenthesis
     push it onto the stack
 if operator
-    pop and write to the output string all consecutive operators that are either operators of higher precedence; or left-associative operators of equal precedence
+    pop and write to the output string all consecutive operators that are either operators of higher precedence, or left-associative operators of equal precedence
     push the operator onto the stack
 if right parenthesis
     pop and write to the output string all operators until a left parenthesis is popped off the stack
