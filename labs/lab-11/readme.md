@@ -1,152 +1,137 @@
-# Lab-11 Hash Tables
----
+# Lab 11 - Sets and Maps
 
 ## 1. Introduction
 
-#### Hash Tables
+In this lab we will be looking into how to store data read from text files into sets and maps, both of which can be thought of as using binary search trees in their implementations. We will be utilizing classes from the STL (Standard Template Library) such as fstream, set and map. The goal of this lab will be to become familiar with use cases of set and map, as well as their operations to provide a framework in which to understand the underlying data structures that make them tick during lecture.
 
-The goal of this lab is to provide background on **Hash Tables, Chaining, & Open-Addressing**.
+## 2. Reading & Parsing Files
 
-Hash Tables are a Data Structure that maps keys to values via a Hash Function.
+Here are the steps required for handling a file for input:
 
-The core concept is to have an array of size *n* with efficient storage/retrieval time.
+1. Create an instance of ifstream.
+2. Open the file. (Check for failure to open.)
+3. Read from the file.
+4. Close the file.
 
-Let's take a brief look at how these work. Using an example w/ a table size of 5, we have the following:
+Example of using ifstream:
 
-| Index | Value |
-| ----- | ----- |
-| 0     |       |
-| 1     |       |
-| 2     |       |
-| 3     |       |
-| 4     |       |
+```c++
+#include <iostream>
+#include <fstream>
+int main() {
+    std::string line;
+    std::ifstream table;                // 1. Create instance
+    table.open("tabledata");                    // 2. Open the file
+    if(table.fail()){                           //    Check open
+        cerr << "Can't open tabledata\n";
+        return 1;
+    }
+    while(std::getline(table, line)){           // 3. get a line of data from table, store in string
+		// Parse the line
+    }    
+    table.close();                                  // 4. Close the file
+    // ...
+}
+```
 
-But how do we store values? We need a Hash Function!
+Today we'll be working with a real-world dataset. This dataset has 3,959 rows of data, each with 14 columns in the following format:
 
-A Hash Function is (surprise) a function that generates some Hash out of the value to be stored. This is an entire field of research, so we'll keep it simple for now. Let's use the following function:
+``` FIPS,Admin2,Province_State,Country_Region,Last_Update,Lat,Long_,Confirmed,Deaths,Recovered,Active,Combined_Key,Incidence_Rate,Case-Fatality_Ratio```
 
-<center>f(x) = x % n </center>
+To handle the commas, we can use an overloaded version of ```std::getline()```. If you reference the manual page (http://www.cplusplus.com/reference/string/string/getline/) you'll see that there is a version of the function that accepts a delimiter. By passing an argument here, we specify how we want the string to be split up. Every call to ```std::getline()``` will read the data up to the next symbol set as the delimiter. You can place this in a loop to parse a delimited string. This would turn the code above into:
 
-Let's use it to store the following values: 1, 14, 13, 16
+```c++
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
-1 % 5 = 1
+int main() {
+    std::string line;
+    std::string entry;
+    std::ifstream table;                // 1. Create instance
+    table.open("tabledata");                    // 2. Open the file
+    if(table.fail()){                           //    Check open
+        cerr << "Can't open tabledata\n";
+        return 1;
+    }
+    while(std::getline(table, line)){           // 3. get a line of data from table, store in 'line'
+	std::stringstream streamline(line);
+	while(std::getline(streamline, entry, ',')){  // 4. loop each "column" in 'line'. It will be stored into 'entry'
+	    std::cout << entry << std::endl;
+    	}
+    }    
+    table.close();                                  // 5. Close the file
+    // ...
+}
+```
 
-| Index | Value |
-| ----- | ----- |
-| 0     |       |
-| 1     | 1     |
-| 2     |       |
-| 3     |       |
-| 4     |       |
+### 3. Sets
 
-14 % 5 = 4
+The reason for being called a "set" comes directly from set theory, a branch of mathematics, in which a set is a collection of distinct objects. In other words, each element that could be in the set is either in the set or not in the set, there is no "amount" associated with a given element. There are a myriad of operations that you can perform on a set. Look at the [set reference](http://en.cppreference.com/w/cpp/container/set) page to familiarize yourself with the basic operations.
 
-| Index | Value |
-| ----- | ----- |
-| 0     |       |
-| 1     | 1     |
-| 2     |       |
-| 3     |       |
-| 4     | 14    |
+```c++
+#include <set>
+#include <string>
 
-13 % 5 = 3
+int main() {
+    std::set<std::string> animals; // creating a set of strings
 
-| Index | Value |
-| ----- | ----- |
-| 0     |       |
-| 1     | 1     |
-| 2     |       |
-| 3     | 13    |
-| 4     | 14    |
+	myset.insert("cat");
+	myset.insert("dog");
+	myset.insert("horse");
 
-16 % 5 = 1
+	// ...
+}
+```
 
-| Index | Value                  |
-| ----- | ---------------------- |
-| 0     |                        |
-| 1     | 1 <-- already a value! |
-| 2     |                        |
-| 3     | 13                     |
-| 4     | 14                     |
+## 4. Maps
 
-We've found an issue with our new Data Structure! This is known as a Hash Collision. Let's look at methods to combat this.
+Maps are similar to sets, in that each contains a number of unique elements that are in order. The *key* difference between sets and maps in general is that sets store elements all by themselves, whereas maps store *key-value pairs*. A key-value pair is a pair of two elements where the first element, the key, is used to index the map, and the second element, the value, is what is stored/returned. Similar to the set reference page, there exists a [map reference](https://en.cppreference.com/w/cpp/container/map) page for you to explore as well.
 
-## 2. Open Addressing
+Here is an example of maps in action:
 
-Open Addressing is a method of collision resolution in hash tables. This method uses **probing** in order to find an open spot in the array to place a value that has encountered a collision. Let's look at a few:
+```c++
+#include <iostream>
+#include <map>
 
-#### Linear Probing
+int main() {
+    std::map<std::string, int> mymap;
 
-For this method, we simply keep checking the next spot to see if it is available. Let's use the example collision from above and see where we end up:
+    mymap["dog"] = 7;
+    mymap.emplace("cat", 4); // This is the same as mymap["cat"] = 4
+    mymap.insert({{"fish", 11}}); // This is the same as mymap["fish"] = 11
+    mymap["cat"]++;
 
-| Index | Value                  |
-| ----- | ---------------------- |
-| 0     |                        |
-| 1     | 1 <-- already a value! |
-| 2     | 16                     |
-| 3     | 13                     |
-| 4     | 14                     |
+    std::cout << mymap["dog"] << std::endl; // Prints 7
+    std::cout << mymap["cat"] << std::endl; // Prints 5
+    std::cout << mymap["fish"] << std::endl; // Prints 11
 
-Since the very next spot was open, 16 gets placed at index 2.
+}
+```
 
-#### Double Hashing
+Note that when you use `emplace` or `insert` with a key that is *already in the map*, the value will **not** be replaced.
 
-Another open addressing method is to use double hashing. In this strategy, a second hash function is utilized to re-hash a value that has collisions. Let's view that example from above again using this new definition:
+## 5. Task for Today
 
-<center>f(x, i) = [(x % n) + (i * f'(x))] % n</center>
+You will be working with a database compiled and maintained by John Hopkins University containing information on cases of COVID-19 (The full database can be found here https://github.com/CSSEGISandData/COVID-19). The goal of this task is to read through the provided text file, insert each unique country into a set and then insert key-value pairs of states/provinces and their associated **confirmed** COVID-19 cases into a map. States/provinces will be the key, and confirmed cases will be the value. If a line of of the text file **does not** have an associated state/province, then **use** the country as the key.
 
-<center>f'(x) = x+3</center>
-<center>Where i is the number of collisions so far</center>
+The data base is comma-separated; the third column of data is the state/province where the COVID-19 cases are occurring. The fourth column of data is the country and the current confirmed cases of COVID-19 will be the eight column of data. Every row has a country name and the same number of commas, but not every row has a state/province.
 
-At the first attempt there are no recorded collisions yet for the input 16 so i is 0
-f(16, 0) = [(16 % n) + (0 * 19)] % n = 1
+### 5.1 Starter Code
 
-After encountering a collision on the first pass, i will now be 1
-f(16, 1) = [(16 % n) + (1 * 19)] % n = [(1) + 19] % n = 0
+You will be given lab-13.cpp, and confirmed_cases.txt (database of confirmed COVID-19 cases), fill in the required functions and test if your code is correct by running the program. The program will output "All tests passed" if everything checks out. There is also a marked space in the main to create any custom tests you may think of. It is recommended that you create custom tests to ensure that your individual functions are correct as well as to answer some of the questions below.
 
-| Index | Value |
-| ----- | ----- |
-| 0     | 16    |
-| 1     | 1     |
-| 2     |       |
-| 3     | 13    |
-| 4     | 14    |
+### 5.2 Questions
 
-A slightly different result than Linear Probing. There are many different strategies for implementing these functions, such as quadratic probing. Let's look at another method entirely.
+Create a text file called lab-13.txt and provide the answers to the following questions:
 
-#### Chaining
-
-In Chaining, instead of an array of keys, we have an array of lists that hold keys. This means probing strategies are not needed, and we just need to push a new value onto the list. For efficiency's sake, we typically push onto the front of the list to maintain O(1) time. Thus, our example values from earlier create the following table:
-
-| Index | Value   |
-| ----- | ------- |
-| 0     |         |
-| 1     | 16 -> 1 |
-| 2     |         |
-| 3     | 13      |
-| 4     | 14      |
-
-
-
-## 3. Your Task 
-
-Your goal for this lab is to complete the following tasks **in order**:
-
-1. Implement a Hash Table that uses Linear Probing. Generate test cases to prove it works.
-2. Implement a Hash Table that uses Double Hashing. Generate test cases to prove it works.
-3. Implement a Hash Table that uses Chaining. Generate test cases to prove it works.
-
-To complete the above objectives, create a Hash Table class using a vector as the underlying data structure. Then write a hash function, insert function and an accessing function.
-
-Insert: Insert will call the hash function to find the index to insert into, as well as handle collisions/calculating the new index.
-
-Access: The accessing function will call the hashing function and return the data stored at that spot. It will also need to re-calculate an index if it
-        doesn't find the data in the case of the data having been stored somewhere else due to a collision. Finally it will need to handle missing entries.
-
-The lecture slides have Java code outlining these functions. Use them for additional clarity if necessary.
-
-Note: You will need `doctest.h` and `test.cpp` from last week to use as a base for your test cases. These files have been provided but the tests in `test.cpp` will need replacing with new tests for your Hash Tables. Having a `makefile` wouldn't hurt either!
-
+1. What is the big O runtime of insert on a set? A map?
+2. What is the difference between a set and a map?
+3. Why are sets and maps useful?
+4. How many countries currently have confirmed cases of COVID-19? (set methods)
+5. How many confirmed cases does Kazakhstan currently have? (map methods)
+6. Which country has the most confirmed cases?
 
 ## 6. Submission
-You will submit files `hashTable.h` and `hashTable.cpp` along with `test.cpp`
+
+You will submit your lab-11.cpp and lab-11.txt files to Gradescope.
